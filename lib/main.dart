@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'dart:async';
 
 void main() {
-  runApp(const MyApp());
+  runApp( 
+    Phoenix(child: 
+      const MyApp())
+  
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -83,7 +89,27 @@ class _MyHomePageState extends State<MyHomePage> {
     );
    }
   
-  
+
+  void timeChecker() {
+    DateTime nowDate =DateTime.now();
+    
+    int currentDay = nowDate.day;
+    //if current day changes rebuild the thing 
+    Timer.periodic(const Duration(minutes: 5), (timer) {
+      //print(currentDay,);
+      DateTime newDate = DateTime.now();
+      int newDay = newDate.day;
+      if (newDay == currentDay){}
+      else {Phoenix.rebirth(context);}
+
+
+
+    }
+    );
+
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     if (buttonStates[index] == defaultImage){
                       _waterCounter();}
                     _toggleButtonState(index);
+                    //timeChecker();
                    
                  },
                     child:
