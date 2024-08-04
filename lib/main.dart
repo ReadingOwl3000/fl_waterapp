@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(Phoenix(child: const MyApp()));
@@ -43,6 +44,7 @@ String defaultImage = 'assets/fullg.png';
 
 class _MyHomePageState extends State<MyHomePage> {
   late List<String> buttonStates; // List to track the image of each button
+  final myController = TextEditingController(); //needed for input widgets
   @override
   void initState() {
     super.initState();
@@ -50,6 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
         List<String>.filled(buttonsNumber, defaultImage, growable: true);
     readList(buttonStates); // re-assigns buttonsStates if possible
     readDT();
+    getPrefs(); //changes watergoal and glass to saved user settings
     setState(() {
       timeChecker(drankToday, extra); //checks date
     });
@@ -77,6 +80,18 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     });
+  }
+
+  Future<void> getPrefs() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    watergoal = prefs.getInt("watergoal") ?? 2000;
+    glass = prefs.getInt("glass") ?? 500;
+  }
+
+  Future<void> writePrefs() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt("watergoal", watergoal);
+    await prefs.setInt("glass", glass);
   }
 
   Future<void> writeList(List<String> buttonStates) async {
@@ -148,6 +163,122 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  void onClicked(String value) {
+    switch (value) {
+      case 'change goal':
+        inpuDialogGoal();
+        break;
+      case 'change glass size':
+        inpuDialogGlass();
+        break;
+      case 'Show summary':
+        print("summary here - coming soon");
+
+        break;
+    }
+  }
+
+  void inpuDialogGoal() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: SizedBox(
+              height: 200,
+              width: 200,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  const Text(
+                      "How much do you want to drink a day? (Note: this might reset today's progress)"),
+                  TextField(
+                    controller: myController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter your daily goal (ml)',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        if (!(myController.text == "")) {
+                          watergoal = int.parse(myController.text);
+                          writePrefs();
+                          setState(() {
+                            buttonStates = List<String>.filled(
+                                buttonsNumber, defaultImage,
+                                growable: true);
+                          });
+                          writeList(buttonStates);
+                        }
+                        print("$watergoal, $buttonsNumber");
+                      },
+                      child: const Text("Close"))
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  void inpuDialogGlass() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: SizedBox(
+              height: 200,
+              width: 200,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  const Text(
+                      "How big is one glass ? (Note: this might reset today's progress)"),
+                  TextField(
+                    controller: myController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter your glass size (ml)',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        if (!(myController.text == "")) {
+                          glass = int.parse(myController.text);
+                          writePrefs();
+                          setState(() {
+                            buttonStates = List<String>.filled(
+                                buttonsNumber, defaultImage,
+                                growable: true);
+                          });
+                          writeList(buttonStates);
+                        }
+                        print("$glass, $buttonsNumber");
+                      },
+                      child: const Text("Close"))
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  @override //
+  void dispose() {
+    // Clean up the controller (for input) when the widget is removed from the widget tree
+    myController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called
@@ -155,6 +286,23 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: <Widget>[
+          PopupMenuButton<String>(
+              onSelected: onClicked,
+              itemBuilder: (BuildContext context) {
+                return {
+                  'change goal',
+                  'change glass size',
+                  '',
+                  'Show summary',
+                }.map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(choice),
+                  );
+                }).toList();
+              }),
+        ],
       ),
       body: Column(
         children: [
