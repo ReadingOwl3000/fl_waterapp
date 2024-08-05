@@ -41,6 +41,7 @@ int get buttonsNumber {
 
 int drankToday = 0;
 String defaultImage = 'assets/fullg.png';
+String emptyImage = "assets/emptyg.png";
 
 class _MyHomePageState extends State<MyHomePage> {
   late List<String> buttonStates; // List to track the image of each button
@@ -76,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       for (int i = 0; i < buttonStates.length; i++) {
         if (i == index) {
-          buttonStates[i] = "assets/emptyg.png";
+          buttonStates[i] = emptyImage;
         }
       }
     });
@@ -189,8 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  const Text(
-                      "How much do you want to drink a day? (Note: this might reset today's progress)"),
+                  const Text("How much do you want to drink a day?"),
                   TextField(
                     controller: myController,
                     decoration: const InputDecoration(
@@ -212,10 +212,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             buttonStates = List<String>.filled(
                                 buttonsNumber, defaultImage,
                                 growable: true);
+                            for (int i = 0; i < drankToday / glass; i++) {
+                              //if (i == index) {
+                              buttonStates[i] = emptyImage;
+                            }
                           });
                           writeList(buttonStates);
                         }
-                        print("$watergoal, $buttonsNumber");
                       },
                       child: const Text("Close"))
                 ],
@@ -236,8 +239,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  const Text(
-                      "How big is one glass ? (Note: this might reset today's progress)"),
+                  const Text("How big is one glass ?"),
                   TextField(
                     controller: myController,
                     decoration: const InputDecoration(
@@ -259,10 +261,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             buttonStates = List<String>.filled(
                                 buttonsNumber, defaultImage,
                                 growable: true);
+                            for (int i = 0; i < drankToday / glass; i++) {
+                              //if (i == index) {
+                              buttonStates[i] = emptyImage;
+                            }
                           });
                           writeList(buttonStates);
                         }
-                        print("$glass, $buttonsNumber");
                       },
                       child: const Text("Close"))
                 ],
