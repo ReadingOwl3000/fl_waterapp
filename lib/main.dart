@@ -53,6 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
         List<String>.filled(buttonsNumber, defaultImage, growable: true);
     readList(buttonStates); // re-assigns buttonsStates if possible
     readDT();
+    readHistroy();
     getPrefs(); //changes watergoal and glass to saved user settings
     setState(() {
       timeChecker(drankToday, extra); //checks date
@@ -141,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
     drankToday = 0;
     extra = 0;
     writeDT(drankToday);
-    writeList(buttonStates);
+    writeHistory();
     buttonStates =
         List<String>.filled(buttonsNumber, defaultImage, growable: true);
     writeList(buttonStates);
@@ -172,9 +173,9 @@ class _MyHomePageState extends State<MyHomePage> {
       case 'change glass size':
         inpuDialogGlass();
         break;
-      case 'Show summary':
+      case 'Show History':
         print("summary here - coming soon");
-
+        showHistory(context);
         break;
     }
   }
@@ -277,6 +278,61 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
+  Future writeHistory() async {
+    List<String> userHistory = await readHistroy();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String dateToday =
+        "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+    userHistory.add("$dateToday : $drankToday");
+    await prefs.setStringList("History", userHistory);
+  }
+
+  Future<List<String>> readHistroy() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> userHistory = prefs.getStringList("History") ?? [];
+    return userHistory;
+  }
+
+  void showHistory(BuildContext context) async {
+    final localContext =
+        context; //stores context locally so no issues occur bc of awaiting
+    List userHistory = await readHistroy();
+    if (localContext.mounted) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Dialog(
+              child: SizedBox(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                    ),
+                    const Text("This is your history:"),
+                    Expanded(
+                      child: ListView.builder(
+                          itemCount: userHistory.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(userHistory[index]),
+                            );
+                          }),
+                    ),
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("Close"))
+                  ],
+                ),
+              ),
+            );
+          });
+    }
+  }
+
   @override //
   void dispose() {
     // Clean up the controller (for input) when the widget is removed from the widget tree
@@ -299,7 +355,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'change goal',
                   'change glass size',
                   '',
-                  'Show summary',
+                  'Show History',
                 }.map((String choice) {
                   return PopupMenuItem<String>(
                     value: choice,
