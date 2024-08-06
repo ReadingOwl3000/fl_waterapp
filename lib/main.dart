@@ -87,12 +87,16 @@ class _MyHomePageState extends State<MyHomePage> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     watergoal = prefs.getInt("watergoal") ?? 2000;
     glass = prefs.getInt("glass") ?? 500;
+    emptyImage = prefs.getString("emptyI") ?? emptyImage;
+    defaultImage = prefs.getString("fullI") ?? defaultImage;
   }
 
   Future<void> writePrefs() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt("watergoal", watergoal);
     await prefs.setInt("glass", glass);
+    await prefs.setString("emptyI", emptyImage);
+    await prefs.setString("fullI", defaultImage);
   }
 
   Future<void> writeList(List<String> buttonStates) async {
