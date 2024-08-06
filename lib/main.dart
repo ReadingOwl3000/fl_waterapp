@@ -282,10 +282,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Future writeHistory(drankToday) async {
     List<String> userHistory = await readHistroy();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    DateTime dateTimeYesterday = DateTime.now().subtract(const Duration(days:1));
+    DateTime dateTimeYesterday =
+        DateTime.now().subtract(const Duration(days: 1));
     String dateToday =
         "${dateTimeYesterday.year}-${dateTimeYesterday.month}-${dateTimeYesterday.day}";
-    userHistory.add("$dateToday : $drankToday"); //values from yesterday, written before daily reset
+    userHistory.add(
+        "$dateToday : $drankToday"); //values from yesterday, written before daily reset
     await prefs.setStringList("History", userHistory);
   }
 
@@ -341,51 +343,45 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context) {
           return Dialog(
             child: SizedBox(
-              height: 200,
+              height: 300,
               width: 200,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   const Text("Choose your icon theme:"),
                   TextButton(
-                    onPressed: () {
-                      defaultImage = "assets/fullg.png";
-                      emptyImage = "assets/emptyg.png";
-                    }, 
-                    child: const Text("Default theme (water)")
-                  ),
-                   TextButton(
-                    onPressed: () {
-                      defaultImage = "assets/fullbubbletea.png";
-                      emptyImage = "assets/emptybubbletea.png";
-                    }, 
-                    child: const Text("Bubbletea ")
-                  ),
-                   TextButton(
-                    onPressed: () {
-                      defaultImage = "assets/fulltea.png";
-                      emptyImage = "assets/emptytea.png";
-                    }, 
-                    child: const Text("Teacup")
-                  ),
+                      onPressed: () {
+                        defaultImage = "assets/fullg.png";
+                        emptyImage = "assets/emptyg.png";
+                      },
+                      child: const Text("Default theme (water)")),
+                  TextButton(
+                      onPressed: () {
+                        defaultImage = "assets/fullbubbletea.png";
+                        emptyImage = "assets/emptybubbletea.png";
+                      },
+                      child: const Text("Bubbletea ")),
+                  TextButton(
+                      onPressed: () {
+                        defaultImage = "assets/fulltea.png";
+                        emptyImage = "assets/emptytea.png";
+                      },
+                      child: const Text("Teacup")),
                   ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
-                          writePrefs();
-                          setState(() {
-                            buttonStates = List<String>.filled(
-                                buttonsNumber, defaultImage,
-                                growable: true);
-                                print(buttonStates);
-                            for (int i = 0; i < drankToday / glass; i++) {
-                              //if (i == index) {
-                              buttonStates[i] = emptyImage;
-                            }
-                          });
-                          writeList(buttonStates);
-                        
-                         
-                      } ,
+                        writePrefs();
+                        setState(() {
+                          buttonStates = List<String>.filled(
+                              buttonsNumber, defaultImage,
+                              growable: true);
+                          for (int i = 0; i < drankToday / glass; i++) {
+                            //if (i == index) {
+                            buttonStates[i] = emptyImage;
+                          }
+                        });
+                        writeList(buttonStates);
+                      },
                       child: const Text("Close"))
                 ],
               ),
@@ -393,7 +389,6 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         });
   }
-
 
   @override //
   void dispose() {
