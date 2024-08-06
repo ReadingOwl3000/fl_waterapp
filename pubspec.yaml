@@ -77,10 +77,10 @@ flutter:
   assets:
      - assets/fullg.png
      - assets/emptyg.png  
-     - assets/full_bubbletea.png
-     - assets/empty_bubbletea.png
-     - assets/empty_tea.png
-     - assets/full_tea.png
+     - assets/fullbubbletea.png
+     - assets/emptybubbletea.png
+     - assets/emptytea.png
+     - assets/fulltea.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
