@@ -31,7 +31,6 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-//might need replacing if the variables should be changed inside the app
 int extra = 0;
 int watergoal = 2000;
 int glass = 500;
@@ -139,10 +138,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void resetOnNewDay(int currentDay, newDay) {
+    writeHistory(drankToday);
     drankToday = 0;
     extra = 0;
     writeDT(drankToday);
-    writeHistory();
     buttonStates =
         List<String>.filled(buttonsNumber, defaultImage, growable: true);
     writeList(buttonStates);
@@ -174,7 +173,6 @@ class _MyHomePageState extends State<MyHomePage> {
         inpuDialogGlass();
         break;
       case 'Show History':
-        print("summary here - coming soon");
         showHistory(context);
         break;
     }
@@ -278,12 +276,13 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
-  Future writeHistory() async {
+  Future writeHistory(drankToday) async {
     List<String> userHistory = await readHistroy();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    DateTime dateTimeYesterday = DateTime.now().subtract(const Duration(days:1));
     String dateToday =
-        "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
-    userHistory.add("$dateToday : $drankToday");
+        "${dateTimeYesterday.year}-${dateTimeYesterday.month}-${dateTimeYesterday.day}";
+    userHistory.add("$dateToday : $drankToday"); //values from yesterday, written before daily reset
     await prefs.setStringList("History", userHistory);
   }
 
