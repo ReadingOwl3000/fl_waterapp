@@ -172,6 +172,9 @@ class _MyHomePageState extends State<MyHomePage> {
       case 'change glass size':
         inpuDialogGlass();
         break;
+      case 'change icon theme':
+        inpuDialogTheme();
+        break;
       case 'Show History':
         showHistory(context);
         break;
@@ -332,6 +335,66 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  void inpuDialogTheme() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: SizedBox(
+              height: 200,
+              width: 200,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  const Text("Choose your icon theme:"),
+                  TextButton(
+                    onPressed: () {
+                      defaultImage = "assets/fullg.png";
+                      emptyImage = "assets/emptyg.png";
+                    }, 
+                    child: const Text("Default theme (water)")
+                  ),
+                   TextButton(
+                    onPressed: () {
+                      defaultImage = "assets/fullbubbletea.png";
+                      emptyImage = "assets/emptybubbletea.png";
+                    }, 
+                    child: const Text("Bubbletea ")
+                  ),
+                   TextButton(
+                    onPressed: () {
+                      defaultImage = "assets/fulltea.png";
+                      emptyImage = "assets/emptytea.png";
+                    }, 
+                    child: const Text("Teacup")
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                          writePrefs();
+                          setState(() {
+                            buttonStates = List<String>.filled(
+                                buttonsNumber, defaultImage,
+                                growable: true);
+                                print(buttonStates);
+                            for (int i = 0; i < drankToday / glass; i++) {
+                              //if (i == index) {
+                              buttonStates[i] = emptyImage;
+                            }
+                          });
+                          writeList(buttonStates);
+                        
+                         
+                      } ,
+                      child: const Text("Close"))
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+
   @override //
   void dispose() {
     // Clean up the controller (for input) when the widget is removed from the widget tree
@@ -353,6 +416,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 return {
                   'change goal',
                   'change glass size',
+                  'change icon theme',
                   '',
                   'Show History',
                 }.map((String choice) {
