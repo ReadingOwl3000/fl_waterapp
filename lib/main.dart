@@ -290,7 +290,7 @@ class _MyHomePageState extends State<MyHomePage> {
         DateTime.now().subtract(const Duration(days: 1));
     String dateToday =
         "${dateTimeYesterday.year}-${dateTimeYesterday.month}-${dateTimeYesterday.day}";
-    userHistory.add(
+    userHistory.insert(0,
         "$dateToday : $drankToday"); //values from yesterday, written before daily reset
     await prefs.setStringList("History", userHistory);
   }
@@ -438,7 +438,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Expanded(
             child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, // Number of columns in the grid
                 mainAxisSpacing: 5.0,
                 crossAxisSpacing: 5.0,
@@ -463,6 +463,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           )
         ],
+      
       ),
 
       floatingActionButton: FloatingActionButton(
