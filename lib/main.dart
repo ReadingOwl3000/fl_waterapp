@@ -5,8 +5,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() {
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse notificationResponse) {
+  // Handle background notification tap
+  print('Notification tapped in background: ${notificationResponse.payload}');
+}
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: AndroidInitializationSettings('@mipmap/ic_launcher.png'),
+        linux: initializationSettingsLinux);
+
+  
+  const LinuxInitializationSettings initializationSettingsLinux = LinuxInitializationSettings(
+        defaultActionName: 'Open notification');
+
+Future <void> main() async{
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
+        
+    },
+    onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+);
   runApp(Phoenix(child: const MyApp()));
+
 }
 
 class MyApp extends StatelessWidget {
@@ -402,6 +424,29 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
+// Test notification scheduling function
+Future<void> scheduleTestNotification() async {
+  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    'reminder_channel_id', // Unique ID for the channel
+    'Reminder Channel',    // Channel name
+    channelDescription: 'Channel for reminder notifications',
+    importance: Importance.high,
+    priority: Priority.high,
+  );
+
+  const NotificationDetails notificationDetails = NotificationDetails(
+    android: androidDetails,
+  );
+
+  await flutterLocalNotificationsPlugin.show(
+    0, // Notification ID
+    'Remember to drink enough water!', // Title
+    'You have reached ${drankToday/watergoal*100}% of your daily goal', // Body
+    notificationDetails,
+    payload: 'reminder', // Data associated with the notification
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called
@@ -432,11 +477,16 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           const Text(
             'You drank this much today:)',
+            
           ),
           Text(
             '$drankToday ',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
+          TextButton(onPressed:() async {
+              // Schedule a notification
+              await scheduleTestNotification();},
+               child: const Text("test message")),
           Expanded(
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
