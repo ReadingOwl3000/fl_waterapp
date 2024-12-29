@@ -3,6 +3,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 void main() {
   runApp(Phoenix(child: const MyApp()));
