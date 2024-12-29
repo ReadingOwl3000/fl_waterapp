@@ -30,6 +30,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -51,13 +52,7 @@ android {
         versionName flutterVersionName
         multiDexEnabled true
     }
-     compileOptions {
-    // Flag to enable support for the new language APIs
-    coreLibraryDesugaringEnabled true
-    // Sets Java compatibility to Java 8
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
-  }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
@@ -71,9 +66,10 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
+}
 
 android {
     ndkVersion = "27.0.12077973"
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
 }
