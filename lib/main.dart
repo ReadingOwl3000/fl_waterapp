@@ -12,7 +12,7 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 }
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   const InitializationSettings initializationSettings = InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/ic_launcher.png'),
+    android: AndroidInitializationSettings('@mipmap/launcher_icon'),
         linux: initializationSettingsLinux);
 
   
@@ -20,6 +20,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
         defaultActionName: 'Open notification');
 
 Future <void> main() async{
+  WidgetsFlutterBinding.ensureInitialized();
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
@@ -70,6 +71,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final myController = TextEditingController(); //needed for input widgets
   @override
   void initState() {
+     _isAndroidPermissionGranted(); 
+    _requestPermissions();
     super.initState();
     buttonStates =
         List<String>.filled(buttonsNumber, defaultImage, growable: true);
@@ -82,6 +85,33 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+bool _notificationsEnabled = false;
+
+Future<void> _isAndroidPermissionGranted() async {
+      final bool granted = await flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin>()
+              ?.areNotificationsEnabled() ??
+          false;
+
+      setState(() {
+        _notificationsEnabled = granted;
+      });
+  }
+
+ Future<void> _requestPermissions() async {
+
+      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+
+      final bool? grantedNotificationPermission =
+          await androidImplementation?.requestNotificationsPermission();
+      setState(() {
+        _notificationsEnabled = grantedNotificationPermission ?? false;
+      });
+    
+  }
   void _waterCounter() {
     setState(() {
       drankToday = drankToday + glass;
