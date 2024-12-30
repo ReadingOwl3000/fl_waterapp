@@ -150,7 +150,8 @@ class _MyHomePageState extends State<MyHomePage> {
     await prefs.setString("fullI", defaultImage);
   }
 
-  Future<void> writeList(List<String> buttonStates) async {                 //TODO stop writing list to shared prefs, replace wit drankToday
+  Future<void> writeList(List<String> buttonStates) async {
+    //TODO stop writing list to shared prefs, replace wit drankToday
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList("buttonStates", buttonStates);
   }
@@ -166,9 +167,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> writeDT(drankToday) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt("drankToday", drankToday);
-    DateTime dateTimeN= DateTime.now();
-    await prefs.setString("date",  
-        "${dateTimeN.year}-${dateTimeN.month}-${dateTimeN.day}");
+    DateTime dateTimeN = DateTime.now();
+    await prefs.setString(
+        "date", "${dateTimeN.year}-${dateTimeN.month}-${dateTimeN.day}");
   }
 
   Future<int> readDT() async {
@@ -179,14 +180,13 @@ class _MyHomePageState extends State<MyHomePage> {
     return drankToday;
   }
 
-  Future<String> readLastLoggedDate() async{
+  Future<String> readLastLoggedDate() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String lastLoggedDate = "future";
     setState(() {
       lastLoggedDate = prefs.getString("date") ?? "error";
     });
     return lastLoggedDate;
-
   }
 
   Future<void> writeDay(lastLoggedDay) async {
@@ -350,8 +350,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future writeHistory(drankToday) async {
     List<String> userHistory = await readHistroy();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String dateToday = await
-        readLastLoggedDate();
+    String dateToday = await readLastLoggedDate();
     userHistory.insert(0,
         "$dateToday : $drankToday"); //values from yesterday, written before daily reset
     await prefs.setStringList("History", userHistory);
