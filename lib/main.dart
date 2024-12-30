@@ -150,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await prefs.setString("fullI", defaultImage);
   }
 
-  Future<void> writeList(List<String> buttonStates) async {
+  Future<void> writeList(List<String> buttonStates) async {                 //TODO stop writing list to shared prefs, replace wit drankToday
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList("buttonStates", buttonStates);
   }
@@ -166,6 +166,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> writeDT(drankToday) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt("drankToday", drankToday);
+    DateTime dateTimeN= DateTime.now();
+    await prefs.setString("date",  
+        "${dateTimeN.year}-${dateTimeN.month}-${dateTimeN.day}");
   }
 
   Future<int> readDT() async {
@@ -176,23 +179,33 @@ class _MyHomePageState extends State<MyHomePage> {
     return drankToday;
   }
 
-  Future<void> writeDay(currentDay) async {
+  Future<String> readLastLoggedDate() async{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt("currentDay", currentDay);
+    String lastLoggedDate = "future";
+    setState(() {
+      lastLoggedDate = prefs.getString("date") ?? "error";
+    });
+    return lastLoggedDate;
+
+  }
+
+  Future<void> writeDay(lastLoggedDay) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt("lastLoggedDay", lastLoggedDay);
   }
 
   Future<int> readDay(
-    currentDay,
+    lastLoggedDay,
   ) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      currentDay = prefs.getInt("currentDay") ??
+      lastLoggedDay = prefs.getInt("lastLoggedDay") ??
           0; //if no current day is stored it gives back 0
     });
-    return currentDay;
+    return lastLoggedDay;
   }
 
-  void resetOnNewDay(int currentDay, newDay) {
+  void resetOnNewDay(int lastLoggedDay, newDay) {
     writeHistory(drankToday);
     drankToday = 0;
     extra = 0;
@@ -204,18 +217,18 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> timeChecker(int drankToday, int extra) async {
-    int currentDay = 0;
-    readDay(currentDay);
-    currentDay = await readDay(currentDay);
-    writeDay(currentDay);
+    int lastLoggedDay = 0;
+    readDay(lastLoggedDay);
+    lastLoggedDay = await readDay(lastLoggedDay);
+    writeDay(lastLoggedDay);
     DateTime newDate = DateTime.now();
     int newDay = newDate.day;
-    if (newDay == currentDay) {
+    if (newDay == lastLoggedDay) {
       return;
     } else {
-      resetOnNewDay(currentDay, newDay);
-      currentDay = newDay;
-      writeDay(currentDay);
+      resetOnNewDay(lastLoggedDay, newDay);
+      lastLoggedDay = newDay;
+      writeDay(lastLoggedDay);
     }
   }
 
@@ -337,10 +350,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Future writeHistory(drankToday) async {
     List<String> userHistory = await readHistroy();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    DateTime dateTimeYesterday =
-        DateTime.now().subtract(const Duration(days: 1));
-    String dateToday =
-        "${dateTimeYesterday.year}-${dateTimeYesterday.month}-${dateTimeYesterday.day}";
+    String dateToday = await
+        readLastLoggedDate();
     userHistory.insert(0,
         "$dateToday : $drankToday"); //values from yesterday, written before daily reset
     await prefs.setStringList("History", userHistory);
