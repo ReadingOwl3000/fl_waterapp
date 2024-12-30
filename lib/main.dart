@@ -10,26 +10,25 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
   // Handle background notification tap
   print('Notification tapped in background: ${notificationResponse.payload}');
 }
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  const InitializationSettings initializationSettings = InitializationSettings(
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+const InitializationSettings initializationSettings = InitializationSettings(
     android: AndroidInitializationSettings('@mipmap/launcher_icon'),
-        linux: initializationSettingsLinux);
+    linux: initializationSettingsLinux);
 
-  
-  const LinuxInitializationSettings initializationSettingsLinux = LinuxInitializationSettings(
-        defaultActionName: 'Open notification');
+const LinuxInitializationSettings initializationSettingsLinux =
+    LinuxInitializationSettings(defaultActionName: 'Open notification');
 
-Future <void> main() async{
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
-        
-    },
+    onDidReceiveNotificationResponse:
+        (NotificationResponse notificationResponse) async {},
     onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-);
+  );
   runApp(Phoenix(child: const MyApp()));
-
 }
 
 class MyApp extends StatelessWidget {
@@ -71,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final myController = TextEditingController(); //needed for input widgets
   @override
   void initState() {
-     _isAndroidPermissionGranted(); 
+    _isAndroidPermissionGranted();
     _requestPermissions();
     super.initState();
     buttonStates =
@@ -85,33 +84,32 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-bool _notificationsEnabled = false;
+  bool _notificationsEnabled = false;
 
-Future<void> _isAndroidPermissionGranted() async {
-      final bool granted = await flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                  AndroidFlutterLocalNotificationsPlugin>()
-              ?.areNotificationsEnabled() ??
-          false;
+  Future<void> _isAndroidPermissionGranted() async {
+    final bool granted = await flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.areNotificationsEnabled() ??
+        false;
 
-      setState(() {
-        _notificationsEnabled = granted;
-      });
+    setState(() {
+      _notificationsEnabled = granted;
+    });
   }
 
- Future<void> _requestPermissions() async {
+  Future<void> _requestPermissions() async {
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
 
-      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-
-      final bool? grantedNotificationPermission =
-          await androidImplementation?.requestNotificationsPermission();
-      setState(() {
-        _notificationsEnabled = grantedNotificationPermission ?? false;
-      });
-    
+    final bool? grantedNotificationPermission =
+        await androidImplementation?.requestNotificationsPermission();
+    setState(() {
+      _notificationsEnabled = grantedNotificationPermission ?? false;
+    });
   }
+
   void _waterCounter() {
     setState(() {
       drankToday = drankToday + glass;
@@ -455,27 +453,28 @@ Future<void> _isAndroidPermissionGranted() async {
   }
 
 // Test notification scheduling function
-Future<void> scheduleTestNotification() async {
-  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'reminder_channel_id', // Unique ID for the channel
-    'Reminder Channel',    // Channel name
-    channelDescription: 'Channel for reminder notifications',
-    importance: Importance.high,
-    priority: Priority.high,
-  );
+  Future<void> scheduleTestNotification() async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'reminder_channel_id', // Unique ID for the channel
+      'Reminder Channel', // Channel name
+      channelDescription: 'Channel for reminder notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
 
-  const NotificationDetails notificationDetails = NotificationDetails(
-    android: androidDetails,
-  );
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
 
-  await flutterLocalNotificationsPlugin.show(
-    0, // Notification ID
-    'Remember to drink enough water!', // Title
-    'You have reached ${drankToday/watergoal*100}% of your daily goal', // Body
-    notificationDetails,
-    payload: 'reminder', // Data associated with the notification
-  );
-}
+    await flutterLocalNotificationsPlugin.show(
+      0, // Notification ID
+      'Remember to drink enough water!', // Title
+      'You have reached ${drankToday / watergoal * 100}% of your daily goal', // Body
+      notificationDetails,
+      payload: 'reminder', // Data associated with the notification
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -507,16 +506,17 @@ Future<void> scheduleTestNotification() async {
         children: [
           const Text(
             'You drank this much today:)',
-            
           ),
           Text(
             '$drankToday ',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-          TextButton(onPressed:() async {
-              // Schedule a notification
-              await scheduleTestNotification();},
-               child: const Text("test message")),
+          TextButton(
+              onPressed: () async {
+                // Schedule a notification
+                await scheduleTestNotification();
+              },
+              child: const Text("test message")),
           Expanded(
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -544,7 +544,6 @@ Future<void> scheduleTestNotification() async {
             ),
           )
         ],
-      
       ),
 
       floatingActionButton: FloatingActionButton(
