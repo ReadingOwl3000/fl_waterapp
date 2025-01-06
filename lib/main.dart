@@ -151,7 +151,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> writeList(List<String> buttonStates) async {
-    //TODO stop writing list to shared prefs, replace wit drankToday
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList("buttonStates", buttonStates);
   }
@@ -195,13 +194,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<int> readDay(
-    lastLoggedDay,
   ) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      lastLoggedDay = prefs.getInt("lastLoggedDay") ??
-          0; //if no current day is stored it gives back 0
-    });
+      int lastLoggedDay = prefs.getInt("lastLoggedDay") ?? 0;
+       //if no current day is stored it gives back 0
     return lastLoggedDay;
   }
 
@@ -217,9 +213,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> timeChecker(int drankToday, int extra) async {
-    int lastLoggedDay = 0;
-    readDay(lastLoggedDay);
-    lastLoggedDay = await readDay(lastLoggedDay);
+    int lastLoggedDay = await readDay();
     writeDay(lastLoggedDay);
     DateTime newDate = DateTime.now();
     int newDay = newDate.day;
@@ -290,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           writeList(buttonStates);
                         }
                       },
-                      child: const Text("Close"))
+                      child: const Text("Apply"))
                 ],
               ),
             ),
@@ -339,7 +333,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           writeList(buttonStates);
                         }
                       },
-                      child: const Text("Close"))
+                      child: const Text("Apply"))
                 ],
               ),
             ),
@@ -351,9 +345,11 @@ class _MyHomePageState extends State<MyHomePage> {
     List<String> userHistory = await readHistroy();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String dateToday = await readLastLoggedDate();
+    if (drankToday != 0){
     userHistory.insert(0,
         "$dateToday : $drankToday"); //values from yesterday, written before daily reset
     await prefs.setStringList("History", userHistory);
+  }
   }
 
   Future<List<String>> readHistroy() async {
@@ -447,7 +443,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         });
                         writeList(buttonStates);
                       },
-                      child: const Text("Close"))
+                      child: const Text("Apply"))
                 ],
               ),
             ),
