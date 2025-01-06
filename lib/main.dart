@@ -11,6 +11,13 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
   // Handle background notification tap
   print('Notification tapped in background: ${notificationResponse.payload}');
 }
+@pragma('vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) {
+    print("Native called background task: $task"); //simpleTask will be emitted here.
+    return Future.value(true);
+  });
+}
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -29,6 +36,11 @@ Future<void> main() async {
         (NotificationResponse notificationResponse) async {},
     onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
   );
+    Workmanager().initialize(
+    callbackDispatcher, // The top level function, aka callbackDispatcher
+    isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+  );
+  Workmanager().registerOneOffTask("task-identifier", "simpleTask");
   runApp(Phoenix(child: const MyApp()));
 }
 
