@@ -193,11 +193,10 @@ class _MyHomePageState extends State<MyHomePage> {
     await prefs.setInt("lastLoggedDay", lastLoggedDay);
   }
 
-  Future<int> readDay(
-  ) async {
+  Future<int> readDay() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-      int lastLoggedDay = prefs.getInt("lastLoggedDay") ?? 0;
-       //if no current day is stored it gives back 0
+    int lastLoggedDay = prefs.getInt("lastLoggedDay") ?? 0;
+    //if no current day is stored it gives back 0
     return lastLoggedDay;
   }
 
@@ -345,11 +344,11 @@ class _MyHomePageState extends State<MyHomePage> {
     List<String> userHistory = await readHistroy();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String dateToday = await readLastLoggedDate();
-    if (drankToday != 0){
-    userHistory.insert(0,
-        "$dateToday : $drankToday"); //values from yesterday, written before daily reset
-    await prefs.setStringList("History", userHistory);
-  }
+    if (drankToday != 0) {
+      userHistory.insert(0,
+          "$dateToday : $drankToday"); //values from yesterday, written before daily reset
+      await prefs.setStringList("History", userHistory);
+    }
   }
 
   Future<List<String>> readHistroy() async {
