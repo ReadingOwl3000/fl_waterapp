@@ -15,6 +15,7 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) {
     print("Native called background task: $task"); //simpleTask will be emitted here.
+    scheduleTestNotification();
     return Future.value(true);
   });
 }
@@ -28,6 +29,35 @@ const InitializationSettings initializationSettings = InitializationSettings(
 const LinuxInitializationSettings initializationSettingsLinux =
     LinuxInitializationSettings(defaultActionName: 'Open notification');
 
+Future<void> scheduleTestNotification() async {
+  //needs to be at top level bc workmanager needs it and workmanager has to be top level per the rules
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'reminder_channel_id', // Unique ID for the channel
+      'Reminder Channel', // Channel name
+      channelDescription: 'Channel for reminder notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+          drankToday = prefs.getInt("drankToday") ?? 0;
+          watergoal = prefs.getInt("watergoal") ?? 2000;
+
+
+
+    await flutterLocalNotificationsPlugin.show(
+      0, // Notification ID
+      'Remember to drink enough water!', // Title
+      'You have reached ${drankToday / watergoal * 100}% of your daily goal', // Body
+      notificationDetails,
+      payload: 'reminder', // Data associated with the notification
+    );
+  }
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await flutterLocalNotificationsPlugin.initialize(
@@ -40,7 +70,14 @@ Future<void> main() async {
     callbackDispatcher, // The top level function, aka callbackDispatcher
     isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
   );
-  Workmanager().registerOneOffTask("task-identifier", "simpleTask");
+ // Workmanager().registerOneOffTask("task-identifier", "simpleTask");
+  Workmanager().registerPeriodicTask(
+    "reminder", 
+    "reminder-task", 
+    // When no frequency is provided the default 15 minutes is set.
+    // Minimum frequency is 15 min. Android will automatically change your frequency to 15 min if you have configured a lower frequency.
+    frequency:const Duration(minutes: 15),
+);
   runApp(Phoenix(child: const MyApp()));
 }
 
