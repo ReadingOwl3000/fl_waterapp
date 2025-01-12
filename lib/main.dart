@@ -11,13 +11,51 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
   // Handle background notification tap
   print('Notification tapped in background: ${notificationResponse.payload}');
 }
-@pragma('vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) {
-    print("Native called background task: $task"); //simpleTask will be emitted here.
-    scheduleTestNotification();
+
+@pragma(
+    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+Future<void> callbackDispatcher() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  print("calback dispather");
+  _isAndroidPermissionGranted();
+  // _requestPermissions();
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/launcher_icon');
+//final DarwinInitializationSettings initializationSettingsDarwin =
+  //   DarwinInitializationSettings();
+  const LinuxInitializationSettings initializationSettingsLinux =
+      LinuxInitializationSettings(defaultActionName: 'Open notification');
+  const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      // iOS: initializationSettingsDarwin,
+      // macOS: initializationSettingsDarwin,
+      linux: initializationSettingsLinux);
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse:
+        (NotificationResponse notificationResponse) async {},
+    onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+  );
+
+  Workmanager().executeTask((task, inputData) async {
+    print(
+        "Native or so i hear called background task: $task"); //simpleTask will be emitted here.
+
+    await scheduleTestNotification();
+    print("wellwellwell");
     return Future.value(true);
   });
+}
+
+Future<void> _isAndroidPermissionGranted() async {
+  final bool granted = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.areNotificationsEnabled() ??
+      false;
 }
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -30,54 +68,74 @@ const LinuxInitializationSettings initializationSettingsLinux =
     LinuxInitializationSettings(defaultActionName: 'Open notification');
 
 Future<void> scheduleTestNotification() async {
+  print("notification...");
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'reminder_channel_id', // ID
+    'Reminder Channel', // Name
+    description: 'Channel for reminder notifications', // Description
+    importance: Importance.high,
+  );
+  print("1");
+
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+  print("2");
   //needs to be at top level bc workmanager needs it and workmanager has to be top level per the rules
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'reminder_channel_id', // Unique ID for the channel
-      'Reminder Channel', // Channel name
-      channelDescription: 'Channel for reminder notifications',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-          drankToday = prefs.getInt("drankToday") ?? 0;
-          watergoal = prefs.getInt("watergoal") ?? 2000;
-
-
-
+  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    'reminder_channel_id', // Unique ID for the channel
+    'Reminder Channel', // Channel name
+    channelDescription: 'Channel for reminder notifications',
+    importance: Importance.high,
+    priority: Priority.high,
+  );
+  print("3");
+  const NotificationDetails notificationDetails = NotificationDetails(
+    android: androidDetails,
+  );
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  print("4");
+  drankToday = prefs.getInt("drankToday") ?? 0;
+  watergoal = prefs.getInt("watergoal") ?? 2000;
+  print("4.1");
+  print("$drankToday , $watergoal");
+  try {
     await flutterLocalNotificationsPlugin.show(
-      0, // Notification ID
+      100, // Notification ID
       'Remember to drink enough water!', // Title
       'You have reached ${drankToday / watergoal * 100}% of your daily goal', // Body
       notificationDetails,
       payload: 'reminder', // Data associated with the notification
     );
+    print("notification should be there");
+  } catch (e, stacktrace) {
+    print("Error showing notification: $e");
+    print(stacktrace);
   }
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse:
-        (NotificationResponse notificationResponse) async {},
-    onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-  );
-    Workmanager().initialize(
-    callbackDispatcher, // The top level function, aka callbackDispatcher
-    isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
-  );
- // Workmanager().registerOneOffTask("task-identifier", "simpleTask");
+  // await flutterLocalNotificationsPlugin.initialize(
+  // initializationSettings,
+  //onDidReceiveNotificationResponse:
+  //  (NotificationResponse notificationResponse) async {},
+  //onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+  // );
+  Workmanager().initialize(
+      callbackDispatcher, // The top level function, aka callbackDispatcher
+      isInDebugMode:
+          false // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+      );
+  // Workmanager().registerOneOffTask("task-identifier", "simpleTask");
   Workmanager().registerPeriodicTask(
-    "reminder", 
-    "reminder-task", 
+    "reminder",
+    "reminder-task",
     // When no frequency is provided the default 15 minutes is set.
     // Minimum frequency is 15 min. Android will automatically change your frequency to 15 min if you have configured a lower frequency.
-    frequency:const Duration(minutes: 15),
-);
+    frequency: const Duration(minutes: 15),
+  );
   runApp(Phoenix(child: const MyApp()));
 }
 
@@ -505,30 +563,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // Clean up the controller (for input) when the widget is removed from the widget tree
     myController.dispose();
     super.dispose();
-  }
-
-// Test notification scheduling function
-  Future<void> scheduleTestNotification() async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'reminder_channel_id', // Unique ID for the channel
-      'Reminder Channel', // Channel name
-      channelDescription: 'Channel for reminder notifications',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
-
-    await flutterLocalNotificationsPlugin.show(
-      0, // Notification ID
-      'Remember to drink enough water!', // Title
-      'You have reached ${drankToday / watergoal * 100}% of your daily goal', // Body
-      notificationDetails,
-      payload: 'reminder', // Data associated with the notification
-    );
   }
 
   @override
