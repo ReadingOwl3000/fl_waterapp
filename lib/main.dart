@@ -601,12 +601,6 @@ class _MyHomePageState extends State<MyHomePage> {
             '$drankToday ',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-          TextButton(
-              onPressed: () async {
-                // Schedule a notification
-                await scheduleTestNotification();
-              },
-              child: const Text("test message")),
           Expanded(
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
