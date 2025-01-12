@@ -98,17 +98,24 @@ Future<void> scheduleTestNotification() async {
   print("4");
   drankToday = prefs.getInt("drankToday") ?? 0;
   watergoal = prefs.getInt("watergoal") ?? 2000;
+  var lastLoggedDay = prefs.getInt("lastLoggedDay",);
+  String body ='You have reached ${drankToday / watergoal * 100}% of your daily goal';
+
   print("4.1");
   print("$drankToday , $watergoal");
   try {
+    if (!(lastLoggedDay == DateTime.now().day)){ //if its a new day display 0 bc you have not opend the app therefore not logged anything
+      body = 'You have reached 0% of your daily goal';
+    }
     await flutterLocalNotificationsPlugin.show(
       100, // Notification ID
       'Remember to drink enough water!', // Title
-      'You have reached ${drankToday / watergoal * 100}% of your daily goal', // Body
+      body, // Body
       notificationDetails,
       payload: 'reminder', // Data associated with the notification
     );
     print("notification should be there");
+    
   } catch (e, stacktrace) {
     print("Error showing notification: $e");
     print(stacktrace);
@@ -117,12 +124,6 @@ Future<void> scheduleTestNotification() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await flutterLocalNotificationsPlugin.initialize(
-  // initializationSettings,
-  //onDidReceiveNotificationResponse:
-  //  (NotificationResponse notificationResponse) async {},
-  //onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-  // );
   Workmanager().initialize(
       callbackDispatcher, // The top level function, aka callbackDispatcher
       isInDebugMode:
