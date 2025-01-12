@@ -98,13 +98,17 @@ Future<void> scheduleTestNotification() async {
   print("4");
   drankToday = prefs.getInt("drankToday") ?? 0;
   watergoal = prefs.getInt("watergoal") ?? 2000;
-  var lastLoggedDay = prefs.getInt("lastLoggedDay",);
-  String body ='You have reached ${drankToday / watergoal * 100}% of your daily goal';
+  var lastLoggedDay = prefs.getInt(
+    "lastLoggedDay",
+  );
+  String body =
+      'You have reached ${drankToday / watergoal * 100}% of your daily goal';
 
   print("4.1");
   print("$drankToday , $watergoal");
   try {
-    if (!(lastLoggedDay == DateTime.now().day)){ //if its a new day display 0 bc you have not opend the app therefore not logged anything
+    if (!(lastLoggedDay == DateTime.now().day)) {
+      //if its a new day display 0 bc you have not opend the app therefore not logged anything
       body = 'You have reached 0% of your daily goal';
     }
     await flutterLocalNotificationsPlugin.show(
@@ -115,7 +119,6 @@ Future<void> scheduleTestNotification() async {
       payload: 'reminder', // Data associated with the notification
     );
     print("notification should be there");
-    
   } catch (e, stacktrace) {
     print("Error showing notification: $e");
     print(stacktrace);
