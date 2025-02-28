@@ -127,3 +127,29 @@ Future<void> scheduleTestNotification() async {
     print(stacktrace);
   }
 }
+
+bool notificationsEnabled = false;
+
+class permissions {
+  //late bool notificationsEnabled;
+
+  static Future<void> isAndroidPermissionGranted() async {
+    final bool granted = await flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.areNotificationsEnabled() ??
+        false;
+
+    notificationsEnabled = granted;
+  }
+
+  static Future<void> requestPermissions() async {
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    final bool? grantedNotificationPermission =
+        await androidImplementation?.requestNotificationsPermission();
+    notificationsEnabled = grantedNotificationPermission ?? false;
+  }
+}
