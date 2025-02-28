@@ -50,7 +50,7 @@ Future<void> callbackDispatcher() async {
 }
 
 Future<void> _isAndroidPermissionGranted() async {
-  final bool granted = await flutterLocalNotificationsPlugin
+  final bool _granted = await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
           ?.areNotificationsEnabled() ??
@@ -130,7 +130,7 @@ Future<void> scheduleTestNotification() async {
 
 bool notificationsEnabled = false;
 
-class permissions {
+class Permissions {
   //late bool notificationsEnabled;
 
   static Future<void> isAndroidPermissionGranted() async {

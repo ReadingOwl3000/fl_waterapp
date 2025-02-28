@@ -58,8 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
       TextEditingController(); //needed for input widgets TODO move to dialog utils
   @override
   void initState() {
-    permissions.isAndroidPermissionGranted();
-    permissions.requestPermissions();
+    Permissions.isAndroidPermissionGranted();
+    Permissions.requestPermissions();
     super.initState();
     buttonStates =
         List<String>.filled(buttonsNumber, defaultImage, growable: true);
