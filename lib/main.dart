@@ -111,13 +111,16 @@ Future<void> scheduleTestNotification() async {
       //if its a new day display 0 bc you have not opend the app therefore not logged anything
       body = 'You have reached 0% of your daily goal';
     }
-    await flutterLocalNotificationsPlugin.show(
-      100, // Notification ID
-      'Remember to drink enough water!', // Title
-      body, // Body
-      notificationDetails,
-      payload: 'reminder', // Data associated with the notification
-    );
+    if (drankToday / watergoal * 100 < 100 ||
+        lastLoggedDay != DateTime.now().day) {
+      await flutterLocalNotificationsPlugin.show(
+        100, // Notification ID
+        'Remember to drink enough water!', // Title
+        body, // Body
+        notificationDetails,
+        payload: 'reminder', // Data associated with the notification
+      );
+    }
     print("notification should be there");
   } catch (e, stacktrace) {
     print("Error showing notification: $e");
@@ -125,21 +128,24 @@ Future<void> scheduleTestNotification() async {
   }
 }
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // SharedPreferences preferences = await SharedPreferences.getInstance();
   Workmanager().initialize(
       callbackDispatcher, // The top level function, aka callbackDispatcher
       isInDebugMode:
-          false // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+          true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
       );
   // Workmanager().registerOneOffTask("task-identifier", "simpleTask");
-  Workmanager().registerPeriodicTask(
-    "reminder",
-    "reminder-task",
-    // When no frequency is provided the default 15 minutes is set.
-    // Minimum frequency is 15 min. Android will automatically change your frequency to 15 min if you have configured a lower frequency.
-    frequency: const Duration(minutes: 15),
-  );
+  // Workmanager().registerPeriodicTask(
+  //   "reminder",
+  //   "reminder-task",
+  //   // When no frequency is provided the default 15 minutes is set.
+  //   // Minimum frequency is 15 min. Android will automatically change your frequency to 15 min if you have configured a lower frequency.
+  //   frequency: Duration(
+  //       minutes: SharedPreferences.getInstance().getInt("sleepBetweenNotifs") ??
+  //           120),
+  // );
   runApp(Phoenix(child: const MyApp()));
 }
 
@@ -347,6 +353,9 @@ class _MyHomePageState extends State<MyHomePage> {
         break;
       case 'change icon theme':
         inpuDialogTheme();
+        break;
+      case 'notification settings':
+        dialogNotifications();
         break;
       case 'Show History':
         showHistory(context);
@@ -562,6 +571,117 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
+  void dialogNotifications() async {
+    String gettingNotifs = await getNotifSettings();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+            child: SizedBox(
+                height: 500,
+                width: 300,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        const Text(
+                          "Notification Settings",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const Padding(padding: EdgeInsets.all(8)),
+                        const Text(
+                            "You can disable/enable notifications in your system settings"),
+                        Text(gettingNotifs),
+                        const Padding(padding: EdgeInsets.all(8)),
+
+                        const Text("How often would you like to be reminded?"),
+                        TextField(
+                          controller: myController,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: 'mintes between reminders (≥ 15)',
+                          ),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                        ),
+                        const Text(
+                          "note: due to system limitations, this function has a minimum of 15min and might not be 100% accurate",
+                          //: TextStyle(fontStyle: FontStyle.italic),
+                          style: TextStyle(
+                              fontSize: 10, fontStyle: FontStyle.italic),
+                        ),
+                        const Padding(padding: EdgeInsets.all(8)),
+                        // const Text(
+                        //     "Between which times would you like to get notifications?"),
+                        //  const Padding(padding: EdgeInsets.all(8)),
+                        TextButton(
+                            onPressed: () {
+                              int sleepBetweenNotifs =
+                                  int.parse(myController.text);
+                              if (sleepBetweenNotifs >= 15) {
+                                saveNotificationSettings(sleepBetweenNotifs);
+
+                                Navigator.pop(context);
+                              } else {
+                                showErrorDialog();
+                              }
+                            },
+                            child: const Text("Save changes"))
+                      ]),
+                )));
+      },
+    );
+  }
+
+  void saveNotificationSettings(int sleepBetweenNotifs) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt("sleepBetweenNotifs", sleepBetweenNotifs);
+
+    Workmanager().registerPeriodicTask(
+      "reminder_",
+      "reminder-task_",
+      // When no frequency is provided the default 15 minutes is set.
+      // Minimum frequency is 15 min. Android will automatically change your frequency to 15 min if you have configured a lower frequency.
+      frequency: Duration(minutes: sleepBetweenNotifs),
+    );
+    //Workmanager().registerOneOffTask("1", "simpleTask", tag: "tag");
+    print("task registerd");
+  }
+
+  Future<String> getNotifSettings() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? alreadySet = prefs.getInt("sleepBetweenNotifs");
+    if (_notificationsEnabled && alreadySet != null) {
+      return "You are currently receiving notifications every ${prefs.getInt("sleepBetweenNotifs")} minutes";
+    } else {
+      return "You are not receiving notifications. Please input your preferred time and check your system settings";
+    }
+  }
+
+  void showErrorDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              child: SizedBox(
+            height: 200,
+            width: 200,
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  const Text("This is an invalid input"),
+                  TextButton(
+                      onPressed: Navigator.of(context).pop,
+                      child: const Text("Close")),
+                ]),
+          ));
+        });
+  }
+
   @override //
   void dispose() {
     // Clean up the controller (for input) when the widget is removed from the widget tree
@@ -584,6 +704,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'change goal',
                   'change glass size',
                   'change icon theme',
+                  'notification settings',
                   '',
                   'Show History',
                 }.map((String choice) {
