@@ -3,149 +3,18 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+//import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
-
-@pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse notificationResponse) {
-  // Handle background notification tap
-  print('Notification tapped in background: ${notificationResponse.payload}');
-}
-
-@pragma(
-    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
-Future<void> callbackDispatcher() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  print("calback dispather");
-  _isAndroidPermissionGranted();
-  // _requestPermissions();
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/launcher_icon');
-//final DarwinInitializationSettings initializationSettingsDarwin =
-  //   DarwinInitializationSettings();
-  const LinuxInitializationSettings initializationSettingsLinux =
-      LinuxInitializationSettings(defaultActionName: 'Open notification');
-  const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      // iOS: initializationSettingsDarwin,
-      // macOS: initializationSettingsDarwin,
-      linux: initializationSettingsLinux);
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse:
-        (NotificationResponse notificationResponse) async {},
-    onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-  );
-
-  Workmanager().executeTask((task, inputData) async {
-    print(
-        "Native or so i hear called background task: $task"); //simpleTask will be emitted here.
-
-    await scheduleTestNotification();
-    print("wellwellwell");
-    return Future.value(true);
-  });
-}
-
-Future<void> _isAndroidPermissionGranted() async {
-  final bool granted = await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.areNotificationsEnabled() ??
-      false;
-}
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-const InitializationSettings initializationSettings = InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/launcher_icon'),
-    linux: initializationSettingsLinux);
-
-const LinuxInitializationSettings initializationSettingsLinux =
-    LinuxInitializationSettings(defaultActionName: 'Open notification');
-
-Future<void> scheduleTestNotification() async {
-  print("notification...");
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'reminder_channel_id', // ID
-    'Reminder Channel', // Name
-    description: 'Channel for reminder notifications', // Description
-    importance: Importance.high,
-  );
-  print("1");
-
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-  print("2");
-  //needs to be at top level bc workmanager needs it and workmanager has to be top level per the rules
-  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'reminder_channel_id', // Unique ID for the channel
-    'Reminder Channel', // Channel name
-    channelDescription: 'Channel for reminder notifications',
-    importance: Importance.high,
-    priority: Priority.high,
-  );
-  print("3");
-  const NotificationDetails notificationDetails = NotificationDetails(
-    android: androidDetails,
-  );
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  print("4");
-  drankToday = prefs.getInt("drankToday") ?? 0;
-  watergoal = prefs.getInt("watergoal") ?? 2000;
-  var lastLoggedDay = prefs.getInt(
-    "lastLoggedDay",
-  );
-  String body =
-      'You have reached ${drankToday / watergoal * 100}% of your daily goal';
-
-  print("4.1");
-  print("$drankToday , $watergoal");
-  try {
-    if (!(lastLoggedDay == DateTime.now().day)) {
-      //if its a new day display 0 bc you have not opend the app therefore not logged anything
-      body = 'You have reached 0% of your daily goal';
-    }
-    if (drankToday / watergoal * 100 < 100 ||
-        lastLoggedDay != DateTime.now().day) {
-      await flutterLocalNotificationsPlugin.show(
-        100, // Notification ID
-        'Remember to drink enough water!', // Title
-        body, // Body
-        notificationDetails,
-        payload: 'reminder', // Data associated with the notification
-      );
-    }
-    print("notification should be there");
-  } catch (e, stacktrace) {
-    print("Error showing notification: $e");
-    print(stacktrace);
-  }
-}
+import 'package:fl_waterapp/utilities/notifications.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // SharedPreferences preferences = await SharedPreferences.getInstance();
   Workmanager().initialize(
       callbackDispatcher, // The top level function, aka callbackDispatcher
       isInDebugMode:
           false // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
       );
-  // Workmanager().registerOneOffTask("task-identifier", "simpleTask");
-  // Workmanager().registerPeriodicTask(
-  //   "reminder",
-  //   "reminder-task",
-  //   // When no frequency is provided the default 15 minutes is set.
-  //   // Minimum frequency is 15 min. Android will automatically change your frequency to 15 min if you have configured a lower frequency.
-  //   frequency: Duration(
-  //       minutes: SharedPreferences.getInstance().getInt("sleepBetweenNotifs") ??
-  //           120),
-  // );
+//TODO: re-register reminder task here based on previous user input
   runApp(Phoenix(child: const MyApp()));
 }
 
@@ -185,11 +54,12 @@ String emptyImage = "assets/emptyg.png";
 
 class _MyHomePageState extends State<MyHomePage> {
   late List<String> buttonStates; // List to track the image of each button
-  final myController = TextEditingController(); //needed for input widgets
+  final myController =
+      TextEditingController(); //needed for input widgets TODO move to dialog utils
   @override
   void initState() {
-    _isAndroidPermissionGranted();
-    _requestPermissions();
+    permissions.isAndroidPermissionGranted();
+    permissions.requestPermissions();
     super.initState();
     buttonStates =
         List<String>.filled(buttonsNumber, defaultImage, growable: true);
@@ -199,32 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
     getPrefs(); //changes watergoal and glass to saved user settings
     setState(() {
       timeChecker(drankToday, extra); //checks date
-    });
-  }
-
-  bool _notificationsEnabled = false;
-
-  Future<void> _isAndroidPermissionGranted() async {
-    final bool granted = await flutterLocalNotificationsPlugin
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.areNotificationsEnabled() ??
-        false;
-
-    setState(() {
-      _notificationsEnabled = granted;
-    });
-  }
-
-  Future<void> _requestPermissions() async {
-    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-
-    final bool? grantedNotificationPermission =
-        await androidImplementation?.requestNotificationsPermission();
-    setState(() {
-      _notificationsEnabled = grantedNotificationPermission ?? false;
     });
   }
 
@@ -655,7 +499,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<String> getNotifSettings() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     int? alreadySet = prefs.getInt("sleepBetweenNotifs");
-    if (_notificationsEnabled && alreadySet != null) {
+    if (notificationsEnabled && alreadySet != null) {
       return "You are currently receiving notifications every ${prefs.getInt("sleepBetweenNotifs")} minutes";
     } else {
       return "You are not receiving notifications. Please input your preferred time and check your system settings";
