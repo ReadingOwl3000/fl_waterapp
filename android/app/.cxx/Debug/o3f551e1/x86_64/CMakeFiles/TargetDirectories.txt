@@ -1,0 +1,2 @@
+/home/marie/devel/Flutter/fl_waterapp/android/app/.cxx/Debug/o3f551e1/x86_64/CMakeFiles/edit_cache.dir
+/home/marie/devel/Flutter/fl_waterapp/android/app/.cxx/Debug/o3f551e1/x86_64/CMakeFiles/rebuild_cache.dir
